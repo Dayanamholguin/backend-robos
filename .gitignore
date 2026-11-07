@@ -1,0 +1,18 @@
+# Archivos de compilación de .NET y Visual Studio
+bin/
+obj/
+.vs/
+*.user
+*.suo
+TestResults/
+
+# Secretos y configuración local: nunca se suben
+secrets.json
+*.local.json
+
+# Documentos personales del proyecto
+Info_project/
+
+# Archivos del sistema operativo
+Thumbs.db
+.DS_Store

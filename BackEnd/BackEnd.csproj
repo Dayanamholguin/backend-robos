@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Espacio raíz de nombres en español para el proyecto -->
+    <RootNamespace>AppRobos.Backend</RootNamespace>
+    <AssemblyName>AppRobos.Backend</AssemblyName>
+    <UserSecretsId>13d3a0ed-5b3a-4c5a-8b76-6e9d8af54776</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Autenticación: ASP.NET Core Identity + tokens JWT -->
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.13" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.13" />
+
+    <!-- Acceso a datos: EF Core con PostgreSQL, PostGIS (NetTopologySuite) y migraciones -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.13">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
+
+    <!-- Documentación interactiva de la API (Swagger UI) -->
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
+  </ItemGroup>
+
+</Project>
+
