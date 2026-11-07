@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using AppRobos.Backend.Dtos;
 using Xunit;
 
@@ -44,7 +44,9 @@ public class ValidacionesDtoPruebas
 
     [Theory]
     [InlineData("3001234567", true)]
-    [InlineData("3210000000", true)]
+    [InlineData("3210123456", true)]
+    [InlineData("3333333333", false)]  // cinco o más números iguales seguidos
+    [InlineData("3111112222", false)]  // cinco o más números iguales seguidos
     [InlineData("2001234567", false)]   // no empieza por 3
     [InlineData("300123456", false)]    // 9 dígitos
     [InlineData("30012345678", false)]  // 11 dígitos

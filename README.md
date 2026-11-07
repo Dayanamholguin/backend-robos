@@ -80,6 +80,8 @@ Todos requieren el encabezado `Authorization: Bearer <token>`, salvo el registro
 |---|---|
 | `POST /api/autenticacion/registro` | Registro de ciudadano |
 | `POST /api/autenticacion/login` | Inicio de sesión |
+| `GET /api/autenticacion/correo-disponible?correo=` | Indica si el correo está libre. Solo devuelve `disponible` |
+| `GET /api/autenticacion/telefono-disponible?telefono=` | Indica si el celular está libre. Valida el formato con el DTO |
 | `GET /api/autenticacion/perfil` | Perfil del usuario en sesión |
 | `PUT /api/autenticacion/perfil` | Actualizar datos del perfil |
 | `PUT /api/autenticacion/perfil/contrasena` | Cambiar contraseña (cierra todas las sesiones) |

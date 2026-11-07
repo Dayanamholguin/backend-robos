@@ -1,7 +1,8 @@
-using AppRobos.Backend.Dtos;
+﻿using AppRobos.Backend.Dtos;
 using AppRobos.Backend.Seguridad;
 using AppRobos.Backend.Modelos;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace AppRobos.Backend.Servicios;
 
@@ -35,6 +36,21 @@ public class ServicioAutenticacion
         _reloj = reloj;
     }
 
+    // Indica si un correo todavía está libre. Solo devuelve el resultado, nunca datos de la cuenta.
+    public async Task<bool> CorreoDisponibleAsync(string correo)
+    {
+        // Igual que el registro, la consulta necesita modo sistema porque aún no hay sesión
+        _sesionBd.ActivarModoSistema();
+        return await _usuarios.FindByEmailAsync(correo.Trim().ToLowerInvariant()) is null;
+    }
+
+    // Indica si un teléfono todavía está libre. Solo devuelve el resultado, nunca datos de la cuenta.
+    public async Task<bool> TelefonoDisponibleAsync(string telefono)
+    {
+        _sesionBd.ActivarModoSistema();
+        return !await _usuarios.Users.AnyAsync(u => u.PhoneNumber == telefono);
+    }
+
     // Registra un ciudadano nuevo (RF-001): valida el correo y el sexo/género,
     // crea la cuenta en estado ACTIVA y le asigna el rol Ciudadano.
     public async Task<ResultadoAuth<PerfilUsuarioDto>> RegistrarAsync(RegistroUsuarioDto datos)
@@ -50,6 +66,14 @@ public class ServicioAutenticacion
             return ResultadoAuth<PerfilUsuarioDto>.Sin(
                 EstadoResultadoAuth.Conflicto,
                 "Ya existe una cuenta con ese correo electrónico.");
+        }
+
+        // El teléfono tampoco puede estar asociado a otra cuenta
+        if (!await TelefonoDisponibleAsync(datos.Telefono))
+        {
+            return ResultadoAuth<PerfilUsuarioDto>.Sin(
+                EstadoResultadoAuth.Conflicto,
+                "Ya existe una cuenta con ese número de celular.");
         }
 
         // El sexo/género debe estar en la lista habilitada de la base de datos

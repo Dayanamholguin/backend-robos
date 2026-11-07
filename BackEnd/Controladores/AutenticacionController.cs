@@ -51,6 +51,47 @@ public class AutenticacionController : ControllerBase
     }
 
     /// <summary>
+    /// Indica si un correo todavía está libre para registrarse.
+    /// </summary>
+    /// <remarks>
+    /// Solo devuelve si el correo está disponible. No muestra ningún dato de la cuenta que lo usa.
+    /// </remarks>
+    /// <response code="200">Resultado de la comprobación.</response>
+    /// <response code="400">El correo no tiene un formato válido.</response>
+    [AllowAnonymous]
+    [HttpGet("correo-disponible")]
+    [ProducesResponseType(typeof(RespuestaCorreoDisponibleDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> CorreoDisponible([FromQuery] string correo)
+    {
+        if (!new System.ComponentModel.DataAnnotations.EmailAddressAttribute().IsValid(correo))
+        {
+            return Problema(StatusCodes.Status400BadRequest, "Datos no válidos", "El correo electrónico no tiene un formato válido.");
+        }
+
+        var disponible = await _autenticacion.CorreoDisponibleAsync(correo);
+        return Ok(new RespuestaCorreoDisponibleDto(disponible));
+    }
+
+    /// <summary>
+    /// Indica si un número de celular todavía está libre para registrarse.
+    /// </summary>
+    /// <remarks>
+    /// El formato se valida con el DTO. Solo devuelve si el número está disponible; no muestra datos de la cuenta.
+    /// </remarks>
+    /// <response code="200">Resultado de la comprobación.</response>
+    /// <response code="400">El número no cumple el formato del celular colombiano.</response>
+    [AllowAnonymous]
+    [HttpGet("telefono-disponible")]
+    [ProducesResponseType(typeof(RespuestaTelefonoDisponibleDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> TelefonoDisponible([FromQuery] TelefonoConsultaDto consulta, CancellationToken ct)
+    {
+        var disponible = await _autenticacion.TelefonoDisponibleAsync(consulta.Telefono);
+        return Ok(new RespuestaTelefonoDisponibleDto(disponible));
+    }
+
+    /// <summary>
     /// Inicia sesión y devuelve un token JWT (RF-002).
     /// </summary>
     /// <remarks>

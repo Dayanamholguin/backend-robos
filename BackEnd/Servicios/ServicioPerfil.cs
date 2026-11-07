@@ -1,6 +1,8 @@
-using AppRobos.Backend.Dtos;
+﻿using AppRobos.Backend.Dtos;
 using AppRobos.Backend.Modelos;
+using AppRobos.Backend.Seguridad;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace AppRobos.Backend.Servicios;
 
@@ -13,13 +15,16 @@ public class ServicioPerfil
     private readonly ServicioCatalogos _catalogos;
     private readonly ServicioBloqueoCuenta _bloqueo;
     private readonly TimeProvider _reloj;
+    private readonly ContextoSesionBaseDatos _sesionBd;
 
     public ServicioPerfil(
         UserManager<CuentaUsuario> usuarios,
         ServicioCatalogos catalogos,
         ServicioBloqueoCuenta bloqueo,
-        TimeProvider reloj)
+        TimeProvider reloj,
+        ContextoSesionBaseDatos sesionBd)
     {
+        _sesionBd = sesionBd;
         _usuarios = usuarios;
         _catalogos = catalogos;
         _bloqueo = bloqueo;
@@ -40,6 +45,16 @@ public class ServicioPerfil
         if (!await _catalogos.CodigoHabilitadoAsync(CatalogosAplicacion.SexoGenero, datos.SexoCodigo))
         {
             return ResultadoAuth<PerfilUsuarioDto>.Invalido(["El sexo o género seleccionado no es válido."]);
+        }
+
+        // El celular no puede pertenecer a otra cuenta. Se consulta en modo sistema porque RLS solo deja ver la cuenta propia.
+        if (cuenta.PhoneNumber != datos.Telefono)
+        {
+            _sesionBd.ActivarModoSistema();
+            if (await _usuarios.Users.AnyAsync(u => u.PhoneNumber == datos.Telefono && u.Id != idCuenta))
+            {
+                return ResultadoAuth<PerfilUsuarioDto>.Sin(EstadoResultadoAuth.Conflicto, "Ese celular ya tiene una cuenta.");
+            }
         }
 
         cuenta.Nombre = datos.Nombre.Trim();

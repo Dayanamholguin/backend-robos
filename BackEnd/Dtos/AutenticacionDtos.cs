@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using AppRobos.Backend.Validaciones;
 
 namespace AppRobos.Backend.Dtos;
@@ -22,7 +22,7 @@ public abstract class DatosPersonalesDto
 
     // Celular de Colombia: 10 dígitos que empiezan por 3.
     [Required(ErrorMessage = "El teléfono es obligatorio.")]
-    [RegularExpression(@"^3\d{9}$", ErrorMessage = "El teléfono debe tener 10 dígitos y empezar por 3 (celular de Colombia).")]
+    [RegularExpression(@"^(?!.*(\d)\1{4})3\d{9}$", ErrorMessage = "El teléfono debe tener 10 dígitos, empezar por 3 y no repetir 5 números iguales seguidos (celular de Colombia).")]
     public string Telefono { get; set; } = string.Empty;
 
     // Fecha de nacimiento. Debe ser una fecha pasada y razonable.
@@ -104,3 +104,17 @@ public record RespuestaLoginDto(
     DateTimeOffset ExpiraEn,
     PerfilUsuarioDto Usuario
 );
+
+// Respuesta de la comprobación de correo. Solo indica si el correo está libre; no expone ningún dato de la cuenta.
+public record RespuestaCorreoDisponibleDto(bool Disponible);
+
+// Consulta de disponibilidad del teléfono. La regla de formato se valida aquí, igual que en el registro.
+public class TelefonoConsultaDto
+{
+    [Required(ErrorMessage = "El teléfono es obligatorio.")]
+    [RegularExpression(@"^(?!.*(\d)\1{4})3\d{9}$", ErrorMessage = "El teléfono debe tener 10 dígitos, empezar por 3 y no repetir 5 números iguales seguidos (celular de Colombia).")]
+    public string Telefono { get; set; } = string.Empty;
+}
+
+// Respuesta de la comprobación de teléfono. Solo indica si está libre; no expone ningún dato de la cuenta.
+public record RespuestaTelefonoDisponibleDto(bool Disponible);
