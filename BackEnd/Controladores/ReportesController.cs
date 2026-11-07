@@ -1,4 +1,4 @@
-using AppRobos.Backend.Configuracion;
+﻿using AppRobos.Backend.Configuracion;
 using AppRobos.Backend.Dtos;
 using AppRobos.Backend.Reportes;
 using AppRobos.Backend.Seguridad;
@@ -23,7 +23,15 @@ public class ReportesController : ControllerBase
         _reportes = reportes;
     }
 
-    // Crea un borrador. Puede tener solo algunos campos; los obligatorios se revisan al enviar.
+    /// <summary>
+    /// Crea un borrador. Puede tener solo algunos campos; los obligatorios se revisan al enviar.
+    /// </summary>
+    /// <remarks>
+    /// El borrador vence a los 15 días desde el primer guardado. Si no se envía antes, se borra automáticamente.
+    /// Los campos de catálogo se envían como código. Los campos que no aplican se descartan al guardar.
+    /// </remarks>
+    /// <response code="201">Borrador creado.</response>
+    /// <response code="400">Algún valor no es válido o no existe en su lista.</response>
     [HttpPost]
     [ProducesResponseType(typeof(ReporteRespuestaDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -40,7 +48,12 @@ public class ReportesController : ControllerBase
             : Responder(resultado);
     }
 
-    // Lista los reportes del ciudadano.
+    /// <summary>
+    /// Lista los reportes del ciudadano que tiene la sesión.
+    /// </summary>
+    /// <remarks>
+    /// Muestra los borradores y los reportes enviados, del más reciente al más antiguo. Devuelve como máximo 100.
+    /// </remarks>
     [HttpGet]
     [EnableRateLimiting(NombresPoliticasLimiteTasa.LecturaReportes)]
     [ProducesResponseType(typeof(IReadOnlyList<ReporteResumenDto>), StatusCodes.Status200OK)]
@@ -49,7 +62,11 @@ public class ReportesController : ControllerBase
         return Ok(await _reportes.ListarAsync(ct));
     }
 
-    // Devuelve un reporte con todas sus secciones.
+    /// <summary>
+    /// Devuelve un reporte con todas sus secciones.
+    /// </summary>
+    /// <response code="200">Reporte con sus datos e ICR, si ya fue enviado.</response>
+    /// <response code="404">El reporte no existe o pertenece a otra cuenta.</response>
     [HttpGet("{id:guid}", Name = nameof(Obtener))]
     [EnableRateLimiting(NombresPoliticasLimiteTasa.LecturaReportes)]
     [ProducesResponseType(typeof(ReporteRespuestaDto), StatusCodes.Status200OK)]
@@ -59,7 +76,16 @@ public class ReportesController : ControllerBase
         return Responder(await _reportes.ObtenerAsync(id, ct));
     }
 
-    // Reemplaza los datos de un borrador.
+    /// <summary>
+    /// Reemplaza los datos de un borrador.
+    /// </summary>
+    /// <remarks>
+    /// Solo el autor puede editar su borrador. Los datos anteriores se reemplazan por completo.
+    /// </remarks>
+    /// <response code="200">Borrador actualizado.</response>
+    /// <response code="400">Algún valor no es válido o no existe en su lista.</response>
+    /// <response code="404">El reporte no existe o pertenece a otra cuenta.</response>
+    /// <response code="409">El reporte ya fue enviado y no se puede modificar.</response>
     [HttpPut("{id:guid}")]
     [ProducesResponseType(typeof(ReporteRespuestaDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -75,7 +101,12 @@ public class ReportesController : ControllerBase
         return Responder(await _reportes.ActualizarBorradorAsync(usuarioId, id, datos, ct));
     }
 
-    // Borra un borrador. Un reporte enviado no se puede borrar.
+    /// <summary>
+    /// Borra un borrador. Un reporte enviado no se puede borrar.
+    /// </summary>
+    /// <response code="204">Borrador eliminado.</response>
+    /// <response code="404">El reporte no existe o pertenece a otra cuenta.</response>
+    /// <response code="409">El reporte ya fue enviado.</response>
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -91,7 +122,17 @@ public class ReportesController : ControllerBase
         return resultado.Tipo == TipoResultadoReporte.Exito ? NoContent() : Responder(resultado);
     }
 
-    // Envía el reporte: revisa los obligatorios, calcula el ICR y lo deja inmutable.
+    /// <summary>
+    /// Envía el reporte: revisa los obligatorios, calcula el ICR y lo deja inmutable.
+    /// </summary>
+    /// <remarks>
+    /// Revisa las secciones A, B, C, D, F y H. Las secciones E y G son opcionales.
+    /// Calcula el ICR (0 a 100) y su clasificación. Después del envío el reporte no se puede modificar ni borrar.
+    /// </remarks>
+    /// <response code="200">Reporte enviado. Devuelve el ICR y su detalle por criterio.</response>
+    /// <response code="400">Faltan datos obligatorios. El detalle indica cuáles.</response>
+    /// <response code="404">El reporte no existe o pertenece a otra cuenta.</response>
+    /// <response code="409">El reporte ya fue enviado.</response>
     [HttpPost("{id:guid}/enviar")]
     [ProducesResponseType(typeof(ReporteRespuestaDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

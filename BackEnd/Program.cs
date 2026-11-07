@@ -1,4 +1,4 @@
-using Npgsql;
+﻿using Npgsql;
 using System.Text;
 using AppRobos.Backend.Configuracion;
 using AppRobos.Backend.Catalogos;
@@ -133,6 +133,9 @@ builder.Services.AddEndpointsApiExplorer();
 // Swagger con el botón "Authorize" para probar los endpoints protegidos con el token
 builder.Services.AddSwaggerGen(opciones =>
 {
+    // Descripciones de endpoints tomadas de los comentarios /// del código
+    opciones.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "AppRobos.Backend.xml"));
+
     opciones.SwaggerDoc("v1", new Microsoft.OpenApi.OpenApiInfo
     {
         Version = "v1.0",

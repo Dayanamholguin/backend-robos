@@ -8,6 +8,9 @@
     <RootNamespace>AppRobos.Backend</RootNamespace>
     <AssemblyName>AppRobos.Backend</AssemblyName>
     <UserSecretsId>13d3a0ed-5b3a-4c5a-8b76-6e9d8af54776</UserSecretsId>
+    <!-- Genera el XML con los comentarios /// para que Swagger muestre las descripciones -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

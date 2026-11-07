@@ -1,4 +1,4 @@
-using System.IdentityModel.Tokens.Jwt;
+﻿using System.IdentityModel.Tokens.Jwt;
 using AppRobos.Backend.Configuracion;
 using AppRobos.Backend.Dtos;
 using AppRobos.Backend.Servicios;
@@ -24,7 +24,16 @@ public class AutenticacionController : ControllerBase
         _perfil = perfil;
     }
 
-    // Registra un ciudadano nuevo con el rol Ciudadano (RF-001).
+    /// <summary>
+    /// Registra un ciudadano nuevo con el rol Ciudadano (RF-001).
+    /// </summary>
+    /// <remarks>
+    /// El correo no puede estar registrado. El sexo/género debe ser uno de los valores del catálogo.
+    /// La cuenta queda activa y no se puede elegir el rol: siempre es Ciudadano.
+    /// </remarks>
+    /// <response code="201">Cuenta creada. Devuelve el perfil.</response>
+    /// <response code="400">Algún dato no cumple las reglas de validación.</response>
+    /// <response code="409">El correo ya está registrado.</response>
     [AllowAnonymous]
     [EnableRateLimiting(NombresPoliticasLimiteTasa.Registro)]
     [HttpPost("registro")]
@@ -41,7 +50,18 @@ public class AutenticacionController : ControllerBase
             : Responder(resultado);
     }
 
-    // Inicia sesión y devuelve un token JWT (RF-002).
+    /// <summary>
+    /// Inicia sesión y devuelve un token JWT (RF-002).
+    /// </summary>
+    /// <remarks>
+    /// Tras 3 intentos fallidos la cuenta se bloquea temporalmente: 3 horas, luego 1 día y luego 1 semana.
+    /// Desde el cuarto bloqueo la cuenta se deshabilita y solo se reactiva por contacto con app@pruebas.com.
+    /// Un inicio de sesión exitoso reinicia el escalonamiento.
+    /// </remarks>
+    /// <response code="200">Sesión iniciada. Devuelve el token y sus datos de vencimiento.</response>
+    /// <response code="401">Correo o contraseña incorrectos.</response>
+    /// <response code="403">La cuenta está deshabilitada o inactiva.</response>
+    /// <response code="423">La cuenta está bloqueada. El campo bloqueadaHasta indica hasta cuándo.</response>
     [AllowAnonymous]
     [EnableRateLimiting(NombresPoliticasLimiteTasa.Login)]
     [HttpPost("login")]
@@ -59,7 +79,11 @@ public class AutenticacionController : ControllerBase
             : Responder(resultado);
     }
 
-    // Devuelve el perfil del ciudadano que tiene la sesión activa (RF-003).
+    /// <summary>
+    /// Devuelve el perfil del ciudadano que tiene la sesión activa (RF-003).
+    /// </summary>
+    /// <response code="200">Perfil del ciudadano.</response>
+    /// <response code="401">Falta el token o no es válido.</response>
     [Authorize]
     [HttpGet("perfil")]
     [ProducesResponseType(typeof(PerfilUsuarioDto), StatusCodes.Status200OK)]
@@ -77,9 +101,16 @@ public class AutenticacionController : ControllerBase
             : Responder(resultado);
     }
 
-    // Edita los datos personales del ciudadano que tiene la sesión (RF-003).
-    // Solo se editan nombre, apellido, teléfono, fecha de nacimiento y sexo/género.
-    // El correo, el rol y el estado no se pueden cambiar; cualquier valor de esos campos se ignora.
+    /// <summary>
+    /// Edita los datos personales del ciudadano que tiene la sesión (RF-003).
+    /// </summary>
+    /// <remarks>
+    /// Solo se editan nombre, apellido, teléfono, fecha de nacimiento y sexo/género.
+    /// El correo, el rol y el estado no se pueden cambiar; cualquier valor de esos campos se ignora.
+    /// </remarks>
+    /// <response code="200">Perfil actualizado.</response>
+    /// <response code="400">Algún dato no cumple las reglas de validación.</response>
+    /// <response code="401">Falta el token o no es válido.</response>
     [Authorize]
     [HttpPut("perfil")]
     [ProducesResponseType(typeof(PerfilUsuarioDto), StatusCodes.Status200OK)]
@@ -98,7 +129,18 @@ public class AutenticacionController : ControllerBase
             : Responder(resultado);
     }
 
-    // Cambia la contraseña del ciudadano con sesión activa, verificando la contraseña actual.
+    /// <summary>
+    /// Cambia la contraseña del ciudadano con sesión activa, verificando la contraseña actual.
+    /// </summary>
+    /// <remarks>
+    /// Al cambiar la contraseña se cierran todas las sesiones abiertas, incluida esta.
+    /// Un intento con la contraseña actual incorrecta cuenta para el bloqueo escalonado.
+    /// </remarks>
+    /// <response code="200">Contraseña cambiada. Las sesiones anteriores quedan cerradas.</response>
+    /// <response code="400">La contraseña nueva no cumple la política.</response>
+    /// <response code="401">Falta el token o no es válido.</response>
+    /// <response code="403">La contraseña actual es incorrecta.</response>
+    /// <response code="423">La cuenta está bloqueada por intentos fallidos.</response>
     [Authorize]
     [HttpPut("perfil/contrasena")]
     [ProducesResponseType(typeof(PerfilUsuarioDto), StatusCodes.Status200OK)]

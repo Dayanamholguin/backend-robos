@@ -1,4 +1,4 @@
-using AppRobos.Backend.Dtos;
+﻿using AppRobos.Backend.Dtos;
 using AppRobos.Backend.Territorio;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,8 +19,16 @@ public class TerritorioController : ControllerBase
         _territorio = territorio;
     }
 
-    // Devuelve municipio y barrio del punto seleccionado en el mapa.
-    // Fuera del área metropolitana responde 422: la app no deja continuar.
+    /// <summary>
+    /// Devuelve municipio y barrio del punto seleccionado en el mapa.
+    /// </summary>
+    /// <remarks>
+    /// Fuera del área metropolitana responde 422 y la app no deja continuar.
+    /// Si el punto está en el área pero no tiene barrio cargado, responde 200 con los campos de municipio y barrio vacíos y un aviso.
+    /// </remarks>
+    /// <response code="200">Municipio y barrio del punto.</response>
+    /// <response code="400">Latitud o longitud fuera de rango.</response>
+    /// <response code="422">El punto está fuera del área metropolitana.</response>
     [HttpGet("ubicacion")]
     [ProducesResponseType(typeof(UbicacionTerritorialRespuestaDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
